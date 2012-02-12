@@ -180,7 +180,8 @@ android.permission.READ_SMS\n\
 [{},"Video decoding performance","<ul><li>Pretty poor, even with the C implementation<li>Not a real bottleneck, network is (≈500 kB/frame)</ul>"],
 [{newline:true},"Controller Interface"],
 [{},"Channels","<dl><dt>UI Websocket (only one)<dd>For real time updates from botnet:<ul><li>Receives new phone metadata<li>Receives SMS'es, location updates, calls/hangups</li></ul></dd><dt>Camera websocket (one per phone)<dd>Receives camera frames</dl>"],
-[{newline:true},"Conclusion","We learned how to:<ul><li>do micro protocols<li>&quot;stream&quot; video<li>web technologies enables loosly coupled botnet system<li>standard data interchange formats ensures platform independance</ul>"],
+[{newline:true},"Conclusion"],
+[{},"What have we learned?","We learned how:<ul><li>to do micro protocols<li>to &quot;stream&quot; video<li>web technologies enables loosly coupled botnet system<li>standard data interchange formats ensures platform independance</ul>"],
 ];
 
 
@@ -207,7 +208,7 @@ android.permission.READ_SMS\n\
 		n+= 1100;
 		if (n > maxn) maxn = n;
 	}
-        document.write('<div id="overview" class="step" data-x="' + (maxn/2) + '" data-y="'+(m/2)+'" data-scale="8"><h1 id="megatitle">Android Botnet Praktikum</h1></div>');
+        document.write('<div id="overview" class="step" data-x="' + (maxn/2) + '" data-y="'+(m/2)+'" data-scale="9"><h1 id="megatitle">Android Botnet Praktikum</h1></div>');
 
 </script>
      </div>
