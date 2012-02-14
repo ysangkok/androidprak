@@ -8,7 +8,7 @@ public class ShutdownReceiver extends BroadcastReceiver {
 
 	@Override
 	public void onReceive(Context context, Intent intent) {
-		BootCompleteReceiver.sendNotification(context, false);
+		BootCompleteReceiver.getInstance(context).sendNotification(false);
 	}
 
 }

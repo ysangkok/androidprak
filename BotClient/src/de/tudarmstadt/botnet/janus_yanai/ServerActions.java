@@ -5,6 +5,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
@@ -17,7 +19,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.content.ContentResolver;
-import android.content.Context;
 import android.database.Cursor;
 import android.location.Criteria;
 import android.location.Location;
@@ -32,17 +33,25 @@ import dalvik.system.DexClassLoader;
 
 public class ServerActions {
 
-	final static String TAG = "ServerActions";
+	private final static String TAG = "ServerActions";
 	
-	final String FILEPATH;
-	final CalendarManager cal;
-	final ContentResolver cp;
-	final boolean canExecute;
-	final LocationManager lm;
+	private final String FILEPATH;
+	private final CalendarManager cal;
+	private final ContentResolver cp;
+	private final boolean canExecute;
+	private final LocationManager lm;
 	
-	List<Action> list = new ArrayList<Action>();
+	private List<Action> list = new ArrayList<Action>();
 	
-	ServerActions() {
+	private static ServerActions instance;
+	
+	public static synchronized ServerActions getInstance() {
+		if (instance == null)
+		  instance = new ServerActions();
+		return instance;
+	}
+	
+	private ServerActions() {
 		canExecute = false;
 		cp = null;
 		cal = null;
@@ -228,18 +237,64 @@ public class ServerActions {
 			String getToken() {
 				return "run ";
 			}
-	
+			
 			@SuppressWarnings("unchecked")
 			@Override
 			JSONObject call(String args) throws Exception {
 				controlCanCall();
+				
+				String[] list = args.split(" ");
+				String[] toPreLoad = list[0].split(",");
+				String toRun = list[1];
+				
 				DexClassLoader classLoader = new DexClassLoader(
 						FILEPATH, "/sdcard", null, getClass().getClassLoader());
+				
+				if (!list[0].equals("NONE"))
+				for (String i : toPreLoad) {
+					classLoader.loadClass(i);
+				}
+				
 				Class<?> myClass;
-				myClass = classLoader.loadClass(args);
+				myClass = classLoader.loadClass(toRun);
 	
 				try {
 					return LineHandler.textout( ((Callable<String>) myClass.newInstance()).call());
+				} catch (ClassCastException e) {
+					Object o = ((Callable<Object>) myClass.newInstance()).call();
+					
+					Method[] allMethods = o.getClass().getDeclaredMethods();
+					for (Method m : allMethods) {
+						String mname = m.getName();
+
+						if (mname.startsWith("getToken")) tokenMethod = m;
+						if (mname.startsWith("call")) callMethod = m;
+					}
+					
+					final Object receiver = o;
+					
+					ServerActions.getInstance().addAction(new Action() {
+
+						@Override
+						String getToken() {
+							try {
+								return (String) ServerActions.this.tokenMethod.invoke(receiver, null);
+							} catch (Exception e) {
+								throw new RuntimeException(e);
+							}
+						}
+
+						@Override
+						JSONObject call(String args) throws Exception {
+							try {
+								return (JSONObject) ServerActions.this.callMethod.invoke(receiver, args);
+							} catch (Exception e) {
+								throw new RuntimeException(e);
+							}
+						}});
+					
+					
+					return LineHandler.textout( "ok, added method" );
 				} catch (Exception e) {
 					e.printStackTrace();
 					throw e;
@@ -270,6 +325,9 @@ public class ServerActions {
 
 	}
 
+	Method tokenMethod;
+	Method callMethod;
+	
 	private static List<String> parseArgs(String args, List<String> defaults) {
 		List<String> fields;
 		args = args.trim();
@@ -293,6 +351,7 @@ public class ServerActions {
 	
 	public static JSONArray iterateCursor(Cursor cur, Iterable<String> fields) throws JSONException {
 		JSONArray arr = new JSONArray();
+		if (cur == null) throw new RuntimeException("Cursor empty!");
 		
     	cur.moveToFirst();
     	
@@ -317,5 +376,23 @@ public class ServerActions {
 
     	}
     	return arr;
+	}
+
+	List<CommandListListener> listeners = new ArrayList<CommandListListener>();
+	
+	public void registerCommandListListener(CommandListListener listener) {
+		listeners.add(listener);
+	}
+	
+	public void addAction(Action act) {
+		list.add(act);
+		updateListeners();
+		Log.d(TAG,"New action: " + act.getToken());
+	}
+	
+	private void updateListeners() {
+		for (CommandListListener x : listeners) {
+			x.commandListChanged();
+		}
 	}
 }

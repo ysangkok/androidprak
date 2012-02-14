@@ -7,7 +7,7 @@ import java.util.Scanner;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.*;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
@@ -15,9 +15,7 @@ import org.apache.http.message.BasicNameValuePair;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.AsyncTask;
-import android.preference.PreferenceManager;
 import android.widget.Toast;
 
 
@@ -41,7 +39,7 @@ class SenderTask extends AsyncTask<Object, Void, CharSequence> {
 	        nameValuePairs.add(new BasicNameValuePair("status", ( ((Boolean) params[0]) ? "on" : "off")));
 	        nameValuePairs.add(new BasicNameValuePair("model", android.os.Build.MODEL));
 	        nameValuePairs.add(new BasicNameValuePair("port", String.valueOf(Config.serverport)));
-	        nameValuePairs.add(new BasicNameValuePair("servercommands", new ServerActions().getCommands().toString()));
+	        nameValuePairs.add(new BasicNameValuePair("servercommands", ServerActions.getInstance().getCommands().toString()));
 	        httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
 	        
 	        HttpResponse response = httpclient.execute(httppost);
@@ -56,25 +54,49 @@ class SenderTask extends AsyncTask<Object, Void, CharSequence> {
 	protected void onPostExecute(CharSequence result) {
 		Toast.makeText(context, result, Toast.LENGTH_SHORT);
 	}
+
+	public ServerActions getServerActions() {
+		return ServerActions.getInstance();
+	}
 	
 }
 
 
 
-public class BootCompleteReceiver extends BroadcastReceiver {
-	
+public class BootCompleteReceiver extends BroadcastReceiver implements CommandListListener {
 		
-	public static void sendNotification(Context context, boolean status) {
-		new SenderTask(context).execute(status);
+	private static BootCompleteReceiver _instance;
+	private Context context;
+	
+	public static BootCompleteReceiver getInstance(Context context) {
+		if (_instance == null) _instance = new BootCompleteReceiver(context);
+		return _instance;
+	}
+	
+	BootCompleteReceiver(Context context) {
+		this.context = context;
+	}
+	
+	public void sendNotification(boolean status) {
+		SenderTask task = new SenderTask(context);
+		task.getServerActions().registerCommandListListener(this);
+		task.execute(status);
 	}
 	
 	@Override
 	public void onReceive(Context context, Intent intent) {
-		BootCompleteReceiver.sendNotification(context, true);
+		if (context != this.context) throw new RuntimeException("if this was started from an activity, how come it is receiving broadcasts? if it wasnt started from an activity, it context shouldnt have changed.");
+		this.context = context;
+		sendNotification(true);
 		
 		// TODO
 		//Intent newinIntent = new Intent(context, ServerService.class);
         //context.startService(newinIntent);
+	}
+
+	@Override 
+	public void commandListChanged() { // CommandListListener
+		sendNotification(true);
 	}
 
 }
